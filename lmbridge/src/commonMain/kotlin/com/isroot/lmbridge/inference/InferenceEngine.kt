@@ -1,0 +1,81 @@
+package com.isroot.lmbridge.inference
+
+import com.isroot.lmbridge.LMBridge
+import com.isroot.lmbridge.models.ChatConfig
+import com.isroot.lmbridge.models.GenerationChunk
+import com.isroot.lmbridge.models.GenerationStats
+import com.isroot.lmbridge.models.MultimodalContent
+import com.isroot.lmbridge.models.ToolResponse
+import kotlinx.coroutines.flow.Flow
+
+/**
+ * 추론 엔진 어댑터 경계.
+ *
+ * 상위 레이어(Facade/Domain)는 이 인터페이스만 참조하며 litertlm 타입을 알지 못한다.
+ * 구현체([LiteRtEngineAdapter])만 `com.google.ai.edge.litertlm.*`를 import한다.
+ */
+internal interface InferenceEngine {
+    val isInitialized: Boolean
+
+    /** 엔진을 초기화한다. 멱등이 아니며, 호출자(Facade)가 상태를 관리한다. */
+    suspend fun initialize(init: EngineInit)
+
+    /** 새 대화 세션을 생성한다. */
+    fun newSession(config: ChatConfig): EngineSession
+
+    /** 엔진과 모든 자원을 해제한다. */
+    fun close()
+}
+
+/** 하나의 대화 세션(litertlm `Conversation` 래핑). */
+internal interface EngineSession {
+    /** [parts]를 전송하고 응답을 스트리밍한다. */
+    fun send(parts: List<MultimodalContent>): Flow<GenerationChunk>
+
+    /** 수동 도구 호출의 실행 결과를 돌려주고 이어지는 응답을 스트리밍한다. */
+    fun sendToolResponses(responses: List<ToolResponse>): Flow<GenerationChunk>
+
+    /** 대화 통계(컨텍스트 토큰 수, 벤치마크 활성 시 처리 속도). */
+    suspend fun stats(): GenerationStats
+
+    /** 진행 중인 생성을 취소한다. */
+    fun cancel()
+
+    /** 세션 자원을 해제한다. */
+    fun close()
+}
+
+/** 엔진 초기화 파라미터. 모델 경로는 상위에서 확정하여 전달한다. */
+internal data class EngineInit(
+    val modelPath: String,
+    val backend: LMBridge.Backend,
+    // 총 컨텍스트(입력+출력 합산) 토큰 상한 = KV 캐시 길이. null이면 각 모델 번들에 내장된
+    // 최대값(파일명 ekvNNNN)을 사용한다. litertlm 계약: 양수 또는 null(모델/엔진 기본값 사용).
+    val maxTokens: Int? = null,
+    val cacheDir: String? = null,
+    // MTP(speculative decoding)는 임베더 lookup 테이블을 포함한 전용 모델에서만 동작한다.
+    // litert-community의 일반 .litertlm(Gemma3-1B / Qwen2.5 / DeepSeek 등)은 이를 포함하지
+    // 않아, 켜면 초기화가 `embedding_lookup == nullptr`(RET_CHECK)로 실패한다. → 기본 off.
+    val enableSpeculativeDecoding: Boolean = false,
+    // 비전(이미지) 입력을 받으려면 엔진이 이미지 슬롯을 미리 할당해야 한다. null/0이면
+    // 비전이 비활성(native `max_num_images: 0`)이라, 멀티모달 모델이라도 이미지를 주입하면
+    // 네이티브가 크래시한다. 텍스트 전용 모델의 기본 동작을 보존하기 위해 기본값은 null(비활성).
+    val maxNumImages: Int? = null,
+    // 비전 인코더 백엔드. null이면 [maxNumImages]>0일 때 [backend]를 사용한다.
+    // 이미지 샘플러(OpenCL image sampler)가 없는 GPU에서는 CPU 비전으로 분리 지정할 수 있다.
+    val visionBackend: LMBridge.Backend? = null,
+    // 오디오 인코더 백엔드. null이면 오디오가 비활성이다(오디오 입력 시 크래시 방지).
+    val audioBackend: LMBridge.Backend? = null,
+    // 인메모리 입력(오디오/이미지 바이트·문서 텍스트) 1건당 최대 바이트. 초과 시
+    // LMBridgeError.InvalidInput으로 표면화한다. 파일 경로 소스(ImageFile/AudioFile)는
+    // 힙에 적재되지 않으므로 적용 대상이 아니다. 기본값은 무제한(상위 Facade가 기기에
+    // 맞춰 실제 값을 계산해 전달한다).
+    val maxInputBytes: Long = Long.MAX_VALUE,
+    // NPU 백엔드가 벤더 런타임 라이브러리를 찾을 디렉터리. 앱 번들 라이브러리를 쓰는 경우
+    // `applicationInfo.nativeLibraryDir`를 전달한다(litertlm Android 가이드 권장).
+    val nativeLibraryDir: String? = null,
+    // true면 대화별 처리 속도(TTFT, prefill/decode tokens/s)를 수집한다.
+    val enableBenchmark: Boolean = false,
+    // CPU 백엔드(메인·비전·오디오 공통) 추론 스레드 수. null이면 litertlm 기본값.
+    val cpuThreadCount: Int? = null,
+)

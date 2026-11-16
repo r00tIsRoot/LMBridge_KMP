@@ -1,0 +1,64 @@
+name: Publish to GitHub Pages
+
+# 태그 push 자동 배포는 로컬 pre-push hook(.githooks/pre-push)으로 대체됨.
+# 필요 시 Actions 탭에서 수동 실행(workflow_dispatch)만 가능하도록 자동 트리거를 껐다.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Publish to local repository
+        run: ./gradlew clean :lmbridge-kmp:publishAllPublicationsToLocalRepository --no-daemon
+
+      - name: Get version from published artifacts
+        id: version
+        run: |
+          VERSION=$(ls lmbridge/build/repo/com/isroot/lmbridge-kmp/ | grep -E '^[0-9]' | head -1)
+          echo "Found version in repo: $VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Checkout Maven repository
+        uses: actions/checkout@v4
+        with:
+          repository: r00tIsRoot/packages
+          path: maven-repo
+          ref: gh-pages
+          fetch-depth: 0
+          token: ${{ secrets.PAT_TOKEN }}
+
+      # 공통 메타데이터와 플랫폼 아티팩트를 같은 버전으로 함께 올린다(하나라도 빠지면 의존성이 풀리지 않음).
+      - name: Copy published files
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          for artifact in lmbridge-kmp lmbridge-kmp-android lmbridge-kmp-desktop; do
+            mkdir -p maven-repo/com/isroot/$artifact/$VERSION
+            cp -r lmbridge/build/repo/com/isroot/$artifact/$VERSION/* maven-repo/com/isroot/$artifact/$VERSION/
+          done
+
+      - name: Commit and push
+        working-directory: maven-repo
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          git add .
+          git diff --staged --quiet || git commit -m "Release lmbridge-kmp v$VERSION"
+          git push

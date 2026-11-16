@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Unit tests (common + desktop + Android JVM)
+        run: ./gradlew :lmbridge-kmp:desktopTest :lmbridge-kmp:testDebugUnitTest --no-daemon
+
+      - name: Build Android AAR and desktop JAR
+        run: ./gradlew :lmbridge-kmp:assembleRelease :lmbridge-kmp:desktopJar --no-daemon
