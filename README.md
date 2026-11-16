@@ -113,7 +113,7 @@ Android 계측 테스트는 기기의 모델 파일을 지우지 않도록 `conn
 
 ```bash
 ./gradlew :lmbridge-kmp:assembleDebugAndroidTest
-adb install -r -t lmbridge/build/outputs/apk/androidTest/debug/lmbridge-debug-androidTest.apk
+adb install -r -t lmbridge/build/outputs/apk/androidTest/debug/lmbridge-kmp-debug-androidTest.apk
 adb shell am instrument -w -e backend GPU -e modelPath /data/local/tmp/lmbridge/smol135.litertlm \
   com.isroot.lmbridge.test/androidx.test.runner.AndroidJUnitRunner
 ```

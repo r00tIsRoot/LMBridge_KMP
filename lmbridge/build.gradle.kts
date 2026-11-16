@@ -85,6 +85,8 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+    // 계측 테스트 APK도 실제 앱처럼 최신 SDK를 타깃해야 API 31+ 제약(예: uses-native-library)이 드러난다.
+    testOptions { targetSdk = 36 }
 }
 
 // 좌표: com.isroot:lmbridge-kmp(공통 메타데이터) · lmbridge-kmp-android · lmbridge-kmp-desktop(프로젝트 이름에서 정해진다).

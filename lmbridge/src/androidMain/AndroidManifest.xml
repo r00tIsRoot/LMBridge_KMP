@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+        Android 12(API 31)+를 타깃하는 앱은 벤더 네이티브 라이브러리를 매니페스트에 선언해야 로드할 수 있다.
+        선언이 없으면 GPU 생성이 "Can not find OpenCL library on this device"로 실패한다.
+        라이브러리 매니페스트에 두어 소비 앱에 자동 병합되게 한다.
+    -->
+    <application>
+        <uses-native-library android:name="libvndksupport.so" android:required="false"/>
+        <uses-native-library android:name="libOpenCL.so" android:required="false"/>
+        <uses-native-library android:name="libLiteRtTopKOpenClSampler.so" android:required="false"/>
+        <uses-native-library android:name="libLiteRtTopKWebGpuSampler.so" android:required="false"/>
+    </application>
+</manifest>
