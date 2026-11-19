@@ -22,12 +22,12 @@ Android 전용 [LMBridge](https://github.com/r00tIsRoot/LMBridge) 0.3.2의 공�
 
 ```kotlin
 dependencies {
-    implementation("com.isroot:lmbridge-kmp:0.1.0")
+    implementation("com.isroot.lmbridge-kmp:kmp:0.1.1")
 }
 ```
 
 KMP 프로젝트라면 `commonMain`에 선언하면 됩니다. Gradle 메타데이터가 타깃에 맞는
-`lmbridge-kmp-android` / `lmbridge-kmp-desktop`을 고릅니다. Kotlin 2.4 이상이 필요합니다(litertlm 요구 사항).
+`kmp-android` / `kmp-desktop`을 고릅니다. Kotlin 2.4 이상이 필요합니다(litertlm 요구 사항).
 
 ## 사용법
 
@@ -76,7 +76,7 @@ MultimodalInput.Builder()
 
 | 항목 | LMBridge 0.3.2 | LMBridge KMP |
 |---|---|---|
-| 좌표 | `com.isroot:lmbridge` | `com.isroot:lmbridge-kmp` |
+| 좌표 | `com.isroot:lmbridge` | `com.isroot.lmbridge-kmp:kmp` |
 | `Builder(context)` | `Context` | `PlatformContext`(Android에서는 `Context`와 같음) |
 | 비트맵 입력 | `Builder.image(bitmap)` 멤버 | 확장 함수 — `import com.isroot.lmbridge.models.image` 필요. 추가 시점에 인코딩된다 |
 | `MultimodalInput.textAndImages` | 멤버 | 확장 함수(Android) |
@@ -121,8 +121,11 @@ adb shell am instrument -w -e backend GPU -e modelPath /data/local/tmp/lmbridge/
 ## 배포
 
 기존 LMBridge와 같은 방식입니다. `vX.Y.Z` 태그를 push하면 로컬 pre-push hook이 `scripts/publish-local.sh`를 실행해
-`r00tIsRoot/packages`(gh-pages, https://r00tisroot.github.io/packages/)의 `com/isroot/` 아래로
-**`lmbridge-kmp`, `lmbridge-kmp-android`, `lmbridge-kmp-desktop` 세 아티팩트를 같은 버전으로 함께** 올립니다.
+`r00tIsRoot/packages`(gh-pages, https://r00tisroot.github.io/packages/)의 `com/isroot/lmbridge-kmp/` 한 폴더 아래로
+**`kmp`(공통), `kmp-android`, `kmp-desktop` 세 아티팩트를 같은 버전으로 함께** 올립니다.
+
+> 0.1.0·0.1.1은 처음에 이전 좌표(`com.isroot:lmbridge-kmp`)로 배포되었으나, 같은 소스를 새 좌표로 다시 빌드해 이 경로로 옮겼습니다.
+> 0.1.0은 Android GPU 버그(OpenCL 선언 누락)가 있으니 0.1.1 이상을 쓰세요.
 배포가 실패하면 태그 push도 중단됩니다.
 
 ```bash

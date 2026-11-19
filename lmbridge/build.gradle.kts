@@ -7,7 +7,9 @@ plugins {
     `maven-publish`
 }
 
-group = "com.isroot"
+// Maven 경로는 그룹/아티팩트/버전이다. 이 프로젝트의 산출물을 packages의 com/isroot/lmbridge-kmp/ 한 폴더 아래
+// 플랫폼별(kmp, kmp-android, kmp-desktop)로 모으기 위해 그룹에 lmbridge-kmp를 넣는다.
+group = "com.isroot.lmbridge-kmp"
 version = "0.1.1"
 
 kotlin {
@@ -18,9 +20,11 @@ kotlin {
     androidTarget {
         compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
         publishLibraryVariants("release")
+        mavenPublication { artifactId = "kmp-android" }
     }
     jvm("desktop") {
         compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
+        mavenPublication { artifactId = "kmp-desktop" }
     }
 
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -89,8 +93,8 @@ android {
     testOptions { targetSdk = 36 }
 }
 
-// 좌표: com.isroot:lmbridge-kmp(공통 메타데이터) · lmbridge-kmp-android · lmbridge-kmp-desktop(프로젝트 이름에서 정해진다).
-// 소비자는 lmbridge-kmp 하나만 선언하면 Gradle 메타데이터가 플랫폼별 아티팩트를 고른다.
+// 좌표: com.isroot.lmbridge-kmp:kmp(공통 메타데이터) · kmp-android · kmp-desktop.
+// 소비자는 kmp 하나만 선언하면 Gradle 메타데이터가 플랫폼별 아티팩트를 고른다.
 publishing {
     // 배포 스크립트(scripts/publish-local.sh)가 이 디렉터리를 packages(gh-pages)로 복사한다.
     repositories {
@@ -100,6 +104,7 @@ publishing {
         }
     }
     publications.withType<MavenPublication>().configureEach {
+        if (name == "kotlinMultiplatform") artifactId = "kmp"
         pom {
             name.set("LMBridge KMP")
             description.set("Kotlin Multiplatform on-device LLM SDK on Google LiteRT-LM (Android, Desktop JVM)")

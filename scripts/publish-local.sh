@@ -4,11 +4,12 @@
 # gh-pages 브랜치(= https://r00tisroot.github.io/packages/ Maven 저장소)로 배포한다.
 # 인증은 사용자의 git 자격증명을 쓴다.
 #
-# KMP는 아티팩트가 셋이다. 소비자는 lmbridge-kmp만 선언하지만, 그 Gradle 메타데이터가 가리키는
+# KMP는 아티팩트가 셋이다. 소비자는 kmp만 선언하지만, 그 Gradle 메타데이터가 가리키는
 # 플랫폼 아티팩트도 함께 있어야 의존성이 풀리므로 셋을 같은 버전으로 한꺼번에 올린다.
-#   com/isroot/lmbridge-kmp           공통 메타데이터
-#   com/isroot/lmbridge-kmp-android   Android AAR
-#   com/isroot/lmbridge-kmp-desktop   데스크톱 JAR
+# 모두 그룹 com.isroot.lmbridge-kmp 아래 한 폴더에 모인다.
+#   com/isroot/lmbridge-kmp/kmp           공통 메타데이터
+#   com/isroot/lmbridge-kmp/kmp-android   Android AAR
+#   com/isroot/lmbridge-kmp/kmp-desktop   데스크톱 JAR
 #
 # 사용:
 #   ./scripts/publish-local.sh            # 빌드 → 복사 → commit → push
@@ -19,8 +20,8 @@
 #   DRY_RUN=1     push 생략
 set -euo pipefail
 
-GROUP_PATH="com/isroot"
-ARTIFACTS=(lmbridge-kmp lmbridge-kmp-android lmbridge-kmp-desktop)
+GROUP_PATH="com/isroot/lmbridge-kmp"
+ARTIFACTS=(kmp kmp-android kmp-desktop)
 LOCAL_REPO="lmbridge/build/repo/${GROUP_PATH}"
 PACKAGES_REMOTE="https://github.com/r00tIsRoot/packages.git"
 PACKAGES_DIR="${PACKAGES_DIR:-$HOME/.cache/lmbridge-packages}"
@@ -33,9 +34,9 @@ echo "==> 1) Gradle publish (로컬 저장소로)"
 ./gradlew clean :lmbridge-kmp:publishAllPublicationsToLocalRepository --no-daemon
 
 echo "==> 2) 산출물에서 버전 추출"
-VERSION="$(ls "${LOCAL_REPO}/lmbridge-kmp" | grep -E '^[0-9]' | head -1)"
+VERSION="$(ls "${LOCAL_REPO}/kmp" | grep -E '^[0-9]' | head -1)"
 if [ -z "${VERSION}" ]; then
-  echo "!! ${LOCAL_REPO}/lmbridge-kmp 에서 버전 디렉터리를 찾지 못했습니다." >&2
+  echo "!! ${LOCAL_REPO}/kmp 에서 버전 디렉터리를 찾지 못했습니다." >&2
   exit 1
 fi
 echo "    version = ${VERSION}"
@@ -83,5 +84,5 @@ if [ "${DRY_RUN}" = "1" ]; then
   echo "      git -C '${PACKAGES_DIR}' push origin gh-pages"
 else
   git push origin gh-pages
-  echo "    배포 완료: https://r00tisroot.github.io/packages/${GROUP_PATH}/lmbridge-kmp/${VERSION}/"
+  echo "    배포 완료: https://r00tisroot.github.io/packages/${GROUP_PATH}/kmp/${VERSION}/"
 fi

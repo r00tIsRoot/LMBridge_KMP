@@ -3,7 +3,7 @@
 Kotlin Multiplatform on-device LLM SDK on Google LiteRT-LM. 상세는 `README.md`.
 
 ## Structure
-- 모듈 하나: Gradle 경로 `:lmbridge-kmp`, 디렉터리 `lmbridge/` (프로젝트 이름 = Maven 아티팩트 이름).
+- 모듈 하나: Gradle 경로 `:lmbridge-kmp`, 디렉터리 `lmbridge/`. Maven 좌표는 그룹 `com.isroot.lmbridge-kmp`, 아티팩트 `kmp`/`kmp-android`/`kmp-desktop`(build.gradle.kts에서 지정).
 - 소스 세트: `commonMain` → `jvmSharedMain`(Android+Desktop 공유) → `androidMain` / `desktopMain`.
 - **litertlm 타입은 `jvmSharedMain/.../inference/LiteRtEngineAdapter.kt` 한 파일에만** import한다.
 - 플랫폼 차이는 `Platform.kt`의 `expect`(PlatformContext, environment, 로그, IO 디스패처, 엔진 생성)로 모은다.
@@ -21,5 +21,5 @@ Kotlin Multiplatform on-device LLM SDK on Google LiteRT-LM. 상세는 `README.md
 
 ## Release
 - 배포는 사용자가 한다. `vX.Y.Z` 태그 push → `.githooks/pre-push` → `scripts/publish-local.sh`가
-  packages(gh-pages)의 `com/isroot/lmbridge-kmp{,-android,-desktop}/<버전>`을 함께 올린다. `com/isroot/lmbridge`(Android판)는 건드리지 않는다.
+  packages(gh-pages)의 `com/isroot/lmbridge-kmp/{kmp,kmp-android,kmp-desktop}/<버전>`을 함께 올린다. `com/isroot/lmbridge`(Android판)는 건드리지 않는다.
 - 버전은 `lmbridge/build.gradle.kts`의 `version`. 버전 변경은 별도 커밋(`[chore] 버전명 변경 vX.Y.Z`).

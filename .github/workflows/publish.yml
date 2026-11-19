@@ -31,7 +31,7 @@ jobs:
       - name: Get version from published artifacts
         id: version
         run: |
-          VERSION=$(ls lmbridge/build/repo/com/isroot/lmbridge-kmp/ | grep -E '^[0-9]' | head -1)
+          VERSION=$(ls lmbridge/build/repo/com/isroot/lmbridge-kmp/kmp/ | grep -E '^[0-9]' | head -1)
           echo "Found version in repo: $VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
@@ -48,9 +48,9 @@ jobs:
       - name: Copy published files
         run: |
           VERSION="${{ steps.version.outputs.VERSION }}"
-          for artifact in lmbridge-kmp lmbridge-kmp-android lmbridge-kmp-desktop; do
-            mkdir -p maven-repo/com/isroot/$artifact/$VERSION
-            cp -r lmbridge/build/repo/com/isroot/$artifact/$VERSION/* maven-repo/com/isroot/$artifact/$VERSION/
+          for artifact in kmp kmp-android kmp-desktop; do
+            mkdir -p maven-repo/com/isroot/lmbridge-kmp/$artifact/$VERSION
+            cp -r lmbridge/build/repo/com/isroot/lmbridge-kmp/$artifact/$VERSION/* maven-repo/com/isroot/lmbridge-kmp/$artifact/$VERSION/
           done
 
       - name: Commit and push
